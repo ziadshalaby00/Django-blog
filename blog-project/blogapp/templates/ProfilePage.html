@@ -1,0 +1,65 @@
+{% extends "main.html" %}
+
+{% block content %}
+<div class="card position-relative w-100 p-3 mt-3 d-flex align-items-center" style="flex-flow:wrap row">
+    <img src=" {% if request.user.profile.profile_image.url %}
+                    {{request.user.profile.profile_image.url}}
+                {% else %}
+                    https://www.blookup.com/static/images/single/profile-1.edaddfbacb02.png
+                {% endif %}"
+    class="card-img-top rounded-circle"  style="width: 250px; height: 250px"
+    alt="...">
+    <div class="card-body">
+      <h5 class="card-title">{{request.user.username}}</h5>
+    </div>
+    <div class="position-absolute top-0 end-0 m-3 d-flex gap-2">
+        <button onclick="openUpdate()" class="btn btn-outline-secondary">update</button>
+        <button onclick="send()" class="btn btn-danger">Delete account</button>
+    </div>
+
+    <div class="mt-4 d-none" id="updateform">
+        <form action="" enctype="multipart/form-data" method="POST">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+            {% csrf_token %}
+            <div class="mb-3 mx-4">
+                <label for="exampleFormControlInput1" class="form-label">Username</label>
+                <input type="text" class="form-control" name="username"
+                id="exampleFormControlInput1" placeholder="Enter your username"
+                style="height: 50px; border-radius: 10px;">
+            </div>
+
+            <div class="mb-3 mx-4">
+                <label class="form-label" for="imageInput">Upload Profile Image</label>
+                <input type="file" class="form-control" id="imageInput" name="profile_image"
+                style="border-radius: 10px;" placeholder="Enter your password">
+            </div>
+            <div class="mb-3  mx-4">
+                <button type="submit" class="w-100 btn btn-primary">Update account</button>
+            </div>
+        </form>
+    </div>
+  </div>
+
+  <script>
+
+    function getCSRFToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]').value;
+    }
+
+    function openUpdate() {
+        document.getElementById('updateform').classList.toggle("d-none")
+    }
+
+    function send() {
+        fetch("{% url 'userInfo' %}", {
+            method: "DELETE",
+            headers: {
+                "X-CSRFToken": document.cookie.slice(10,)
+            },
+        })
+        .then(() => {
+            location.href='{% url "signup" %}'
+        })
+    }
+  </script>
+{% endblock content %}

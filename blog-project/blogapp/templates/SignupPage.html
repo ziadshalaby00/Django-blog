@@ -1,0 +1,93 @@
+{% extends "main.html" %}
+{% block content %}
+<div class="w-100 d-flex justify-content-center align-items-center" style="height: 80vh;">
+    <form action="" enctype="multipart/form-data" 
+    method="POST" class="needs-validation w-50 m-auto shadow bg-white px-5 py-3" novalidate
+    style="border-radius: 20px;">
+        {% csrf_token %}
+
+        <h2 class="m-4">Create An account</h2>
+
+        <div class="mb-3 mx-4">
+            <label for="exampleFormControlInput1" class="form-label">Username</label>
+            <input type="text" class="form-control" required name="username"
+            id="exampleFormControlInput1" placeholder="Enter your username"
+            style="height: 50px; border-radius: 10px;">
+
+            <div class="valid-feedback">
+                Looks good!
+            </div>
+            <div class="invalid-feedback">
+                Please choose a username.
+            </div>
+        </div>
+
+        <div class="mb-3  mx-4">
+            <label for="exampleFormControlTextarea1" class="form-label">Password</label>
+            <input class="form-control" type="password" id="exampleFormControlTextarea1" required name="password"
+            style="height: 50px; border-radius: 10px;" placeholder="Enter your password">
+
+            <div class="valid-feedback">
+                Looks good!
+            </div>
+            <div class="invalid-feedback">
+                Please choose a password.
+            </div>
+        </div>
+
+        <div class="mb-3 mx-4">
+            
+            <label class="form-label" for="inputGroupFile01">Upload Profile Image</label>
+            <input type="file" class="form-control" id="inputGroupFile01" name="profile_image"
+            style="border-radius: 10px;">
+
+            <div class="valid-feedback">
+                Looks good!
+            </div>
+            <div class="invalid-feedback">
+                Please choose a Image.
+            </div>
+        </div>
+        <div class="mb-3  mx-4 text-center text-danger">
+            
+            {% if error %}
+                {{error}}
+            {% endif %}
+                
+        </div>
+        <div class="mb-3  mx-4">
+
+            <button type="submit" style="height: 50px; border-radius: 10px;" id="submit"
+            class="w-100 btn btn-primary">Create account</button>
+
+            <p class="text-center my-3" style="color: #b1b9c5;">
+                Already Have An Account? 
+                <a class="text-primary" href='{% url "login" %}'
+                style="text-decoration: none; cursor: pointer;"
+                >Login</a>
+            </p>
+        </div>
+    </form>
+</div>
+
+<script>
+    (() => {
+        'use strict'
+      
+        // Fetch all the forms we want to apply custom Bootstrap validation styles to
+        const forms = document.querySelectorAll('.needs-validation')
+      
+        // Loop over them and prevent submission
+        Array.from(forms).forEach(form => {
+          form.addEventListener('submit', event => {
+            if (!form.checkValidity()) {
+              event.preventDefault()
+              event.stopPropagation()
+            }
+      
+            form.classList.add('was-validated')
+          }, false)
+        })
+      })()
+</script>
+{% endblock content %}
