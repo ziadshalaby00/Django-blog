@@ -49,7 +49,17 @@
       {% endfor %}
         
     </div>
-  </nav>
+</nav>
+
+{% if request.user.is_authenticated %}
+<div class="m-3 mt-4 d-flex justify-content-end">
+    <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#createPost">
+        Create a post now
+        <i class="bi bi-pencil-square"></i>
+    </button>
+</div>
+{% endif %}
+
 <h1 class="text-center m-3">
     {% if posts.tag_name %} 
         {{posts.tag_name}}
@@ -75,8 +85,29 @@
                  
                 <h4 class="d-inline">{{post.user.username}}</h4>
             </div>
-            <div>
+            <div class="d-flex gap-2 flex-wrap justify-content-end">
                 <span class="fs-6 px-3 py-2 badge bg-secondary">{{post.tag.name}}</span>
+                
+                {% if request.user.id == post.user.id %}
+                <button type="button" class="btn btn-outline-secondary ms-3" 
+                data-bs-toggle="modal" data-bs-target="#updatepost"
+                onclick="fillUpdateModle({
+                    'id': '{{post.id}}',
+                    'title': '{{post.title}}',
+                    'content': '{{post.content}}',
+                    'tag_id': '{{post.tag.id}}',
+                    'tag_name': '{{post.tag.name}}',
+                })">
+                    <i class="bi bi-pencil-square"></i>
+                    Update
+                </button>
+
+                <a href="{% url 'deletePost' post.id %}" id="deletePost-btn" type="button" class="btn btn-outline-danger">
+                    <i class="bi bi-trash"></i>
+                    Delete
+                </a>
+                {% endif %}
+                    
             </div>
         </div>
         
@@ -110,7 +141,7 @@
     </div>
     {% endfor %}
 
-    <!-- Modal -->
+    <!-- Modal comments -->
     <div class="modal fade" id="CommentsModel" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
@@ -124,11 +155,71 @@
                 style="max-height: 75vh; padding: 40px" id="modal-body-comments">
 
                 </div>
-
+                {% if request.user.is_authenticated %}
+                <div class="border-top input-group my-3 p-3 pt-4">
+                    <input type="file" class="form-control" id="inputGroupFile01">
+                    <textarea rows="1" class="form-control" id="contentComment" placeholder="Comment Now"></textarea>
+                    <button class="btn btn-outline-primary" id="btn-create-comment">Comment</button>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
+    <!--// Modal comments //-->
 
+    <!-- Modal update post -->
+    <div class="modal fade" id="updatepost" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Update Post</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="updateModel">
+
+            </div>
+        </div>
+        </div>
+    </div>
+    <!--// Modal update post //-->
+
+    <!-- Modal Create post -->
+    <div class="modal fade" id="createPost" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="createPostModle">
+                    <form enctype="multipart/form-data" action="{% url 'createPost' %}" method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <select class="form-select" name="tag" aria-label="Default select example">
+
+                                {% for tag in tags %}
+                                    <option value="{{tag.id}}">{{tag.name}}</option>
+                                {% endfor %}
+                                    
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" placeholder="Title" name="title">
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" placeholder="Content" name="content">
+                        </div>
+                        <div class="mb-3">
+                            <input type="file" name="image" class="form-control">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Create</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--// Modal Create post //-->
+
+    {% comment %} tags {% endcomment %}
     <div class="paginat btn-group me-2 p-1 w-50 overflow-auto
         border-top-0 border-bottom-0 border-primary border border-2
         m-4 mb-5 float-end" role="group" aria-label="First group">
@@ -146,6 +237,7 @@
         {% endfor %}
             
     </div>
+    {% comment %} tags {% endcomment %}
 </div>
 
 <script>
@@ -160,16 +252,25 @@
             for(let item of response.comments) {
                 document.getElementById("modal-body-comments").innerHTML += `
                     <div class="mb-5">
-                        <div class="me-2 d-flex gap-2 align-items-center">
-                            <img class="rounded-circle border border-primary" style="width: 50px; height: 50px"
-                                src=" {% if post.user.profile.profile_image.url %}
-                                {{post.user.profile.profile_image.url}}
-                                {% else %}
-                                https://www.blookup.com/static/images/single/profile-1.edaddfbacb02.png
-                                {% endif %}"
-                                alt="">
-                                
-                            <h4 class="d-inline">${item.user__username}</h4>
+                        <div class="me-2 d-flex gap-2 align-items-center justify-content-between">
+                            <div class="d-flex gap-2 align-items-center">
+                                <img class="rounded-circle border border-primary" style="width: 50px; height: 50px"
+                                    src=" {% if post.user.profile.profile_image.url %}
+                                    {{post.user.profile.profile_image.url}}
+                                    {% else %}
+                                    https://www.blookup.com/static/images/single/profile-1.edaddfbacb02.png
+                                    {% endif %}"
+                                    alt="">
+                                    
+                                <h4 class="d-inline">${item.user__username}</h4>
+                            </div>
+                            
+                            ${response.current_user == item.user__id ?
+                                `<button class="btn btn-danger btn-sm me-2" 
+                                    onclick="deleteComment(${post_id}, ${item.id})">
+                                    <i class="bi bi-trash"></i>
+                                </button>`: '' }
+
                         </div>
 
                         <p class="mt-2 ms-5"> ${item.content}
@@ -179,6 +280,9 @@
                     </div>
                 `
             }
+            document.getElementById("modal-body-comments").innerHTML += 
+            `<input id="hidden-post-id-comment" type="hidden" value="${post_id}">`
+            
         }).catch((error) => {
             console.log(error)
         })
@@ -216,5 +320,84 @@
             console.log(error)
         })
     }
+
+    function fillUpdateModle(post) {
+        document.getElementById("updateModel").innerHTML = `
+            <form enctype="multipart/form-data" action="{% url 'updatePost' %}${post.id}" method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <select class="form-select" name="tag" aria-label="Default select example">
+                        <option value="${post.tag_id}" selectd>${post.tag_name}</option>
+
+                        {% for tag in tags %}
+                            <option value="{{tag.id}}">{{tag.name}}</option>
+                        {% endfor %}
+                            
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <input type="text" value="${post.title}" class="form-control" placeholder="Title" name="title">
+                </div>
+                <div class="mb-3">
+                    <input type="text" value="${post.content}" class="form-control" placeholder="Content" name="content">
+                </div>
+                <div class="mb-3">
+                    <input type="file" value="${post.image}" name="image" class="form-control">
+                </div>
+                <button type="submit" class="btn btn-primary">Update</button>
+            </form>
+        `
+    }
+
+    document.getElementById("btn-create-comment").addEventListener("click", () => {
+        createComment(document.getElementById("hidden-post-id-comment").value)
+    })
+
+    function createComment(post_id) {
+        console.log("done")
+        console.log(post_id)
+        let formData = new FormData();
+        formData.append("image", document.getElementById("inputGroupFile01").files[0]); 
+        formData.append("content", document.getElementById("contentComment").value);
+
+        fetch(`{% url 'createComment' %}${post_id}`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCSRFToken()
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(response => {
+            getCommentForPost(post_id)
+            console.log(response)
+        }).catch((error) => {
+            console.log(error)
+        })
+    }
+
+    function deleteComment(post_id, comment_id) {
+        if(confirm("you sure you want delete this comment?")){
+            fetch(`{% url 'deleteComment' %}${comment_id}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCSRFToken()
+                },
+            })
+            .then(response => response.json())
+            .then(response => {
+                getCommentForPost(post_id)
+                console.log(response)
+            }).catch((error) => {
+                console.log(error)
+            })
+        }
+    }
+
+    document.getElementById("deletePost-btn")?.addEventListener("click", function (e) {
+        if(!confirm("you sure you want delete this post?")) {
+            e.preventDefault();
+        }
+    });
 </script>
 {% endblock content %}

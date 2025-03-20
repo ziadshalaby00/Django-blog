@@ -42,7 +42,6 @@ class loginView(View):
         
         return render(request, 'LoginPage.html', {"error": "Username or Password is invalid"})
     
-
 class userInfo(LoginRequiredMixin, View):
     login_url = '/login/'
     
@@ -53,8 +52,9 @@ class userInfo(LoginRequiredMixin, View):
             post.likes_count = post.likes.filter(like=True).count()
             if(request.user.is_authenticated):
                 post.is_liked = post.likes.filter(like=True, user=request.user).exists()
-        
-        return render(request, 'profilePage.html', {"posts": posts})
+                
+        tags = Tag.objects.all()
+        return render(request, 'profilePage.html', {"tags": tags, "posts": posts})
     
     def post(self, request):
         user = User.objects.get(id=request.user.id)
@@ -128,16 +128,90 @@ def likes(request):
             return JsonResponse({"message": "invalid 1"}, status=400) 
     else:
         return JsonResponse({"message": "invalid 2"}, status=400)
-        
 
 def getComment(request):
     post_id = request.GET.get("post_id")
     if not post_id:
         return JsonResponse({"error": "post_id is required"}, status=400)
-    comments = Comment.objects.filter(post=post_id).values("id", "user__username", "image", "content", "created_at")
+    comments = Comment.objects.filter(post=post_id).values(
+        "id", "user__id", "user__username",
+        "image", "content", "created_at").order_by("-created_at")
     return JsonResponse({
-        "comments": list(comments)
+        "comments": list(comments),
+        "current_user": request.user.id
     }, status=200)
+
+@login_required(login_url='/login/')
+def deletePost(request, id):
+    post = Post.objects.filter(user=request.user, id=id)
+    if post.exists():
+        post.first().delete()
+        
+    return redirect(request.META.get('HTTP_REFERER', '/'))
+    
+@login_required(login_url='/login/')
+def updatePost(request, id):
+    if request.method == "POST":
+        post = Post.objects.filter(user=request.user, id=id).first()
+        tag = Tag.objects.filter(id=request.POST.get("tag")).first()
+        title = request.POST.get("title")
+        content = request.POST.get("content")
+        image = request.FILES.get("image")
+
+        if post:
+            if tag: post.tag = tag
+            if title: post.title = title
+            if content: post.content = content
+            if image: post.image = image
+            post.save()
+            
+    return redirect(request.META.get('HTTP_REFERER', '/'))
+
+@login_required(login_url='/login/')
+def createPost(request):
+    if request.method == "POST":
+        tag = Tag.objects.filter(id=request.POST.get("tag")).first()
+        title = request.POST.get("title")
+        content = request.POST.get("content")
+        image = request.FILES.get("image")
+
+        if title and content:
+            Post.objects.create(
+                user=request.user,
+                tag=tag,
+                title=title,
+                content=content,
+                image=image,
+            )
+            
+    return redirect('blog')
+
+@login_required(login_url='/login/')
+def createComment(request, id):
+    user = request.user
+    post = Post.objects.filter(id=id).first()
+    if post:
+        content = request.POST.get("content")
+        image = request.FILES.get("image")
+        
+    if content:
+        Comment.objects.create(
+            user=user,
+            post=post,
+            content=content,
+            image=image
+        )
+        return JsonResponse({}, status=200)
+    
+    return JsonResponse({}, status=400)
+
+@login_required(login_url='/login/')
+def deleteComment(request, id):
+    comment = Comment.objects.filter(user=request.user, id=id).first()
+    if comment:
+        comment.delete()
+        return JsonResponse({}, status=200)
+    return JsonResponse({}, status=400)
 
 def logoutView(request):
     logout(request)

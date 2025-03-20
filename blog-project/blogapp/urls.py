@@ -27,8 +27,19 @@ urlpatterns = [
     
     path("Blog/", BlogView, name="blog"),
     
+    path("deletePost/<int:id>", deletePost, name="deletePost"),
+    path("updatePost/<int:id>", updatePost, name="updatePost"),
+    path("updatePost/", updatePost, name="updatePost"),
+    path("createPost/", createPost, name="createPost"),
+    
+    path("createComment/<int:id>", createComment, name="createComment"),
+    path("createComment/", createComment, name="createComment"),
+    
+    path("deleteComment/<int:id>/", deleteComment, name="deleteComment"),
+    path("deleteComment/", deleteComment, name="deleteComment"),
+    
     path("likes/", likes, name="likes"),
     path("getComment/", getComment, name="getComment"),
     
-    # path("createTestUser/", createTestUser),
+    # path("createTestPost/", createTestPost),
 ]
