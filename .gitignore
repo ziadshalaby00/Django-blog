@@ -17,7 +17,7 @@ db.sqlite3-journal
 # مجلدات Django المؤقتة
 *.log
 local_settings.py
-media/
+# media/
 staticfiles/
 
 # ملفات التغطية والاختبار
