@@ -220,22 +220,24 @@
     <!--// Modal Create post //-->
 
     {% comment %} tags {% endcomment %}
-    <div class="paginat btn-group me-2 p-1 w-50 overflow-auto
-        border-top-0 border-bottom-0 border-primary border border-2
-        m-4 mb-5 float-end" role="group" aria-label="First group">
-        
-        {% for item in posts.paginator.page_range %}
+    <div class="d-flex justify-content-end">
+        <div class="paginat btn-group me-2 p-1 w-50 overflow-auto
+            border-top-0 border-bottom-0 border-primary border border-2
+            m-4 mb-5" role="group" aria-label="First group">
             
-            {% if item == posts.number %}
-
-                <a type="button" href="?page={{ item }}&&tag={{ posts.tag_id }}" class="btn btn-primary">{{item}}</a>
-                {% else %}
-                <a type="button" href="?page={{ item }}&&tag={{ posts.tag_id }}" class="btn btn-outline-primary">{{item}}</a>
-
-            {% endif %}
-
-        {% endfor %}
-            
+            {% for item in posts.paginator.page_range %}
+                
+                {% if item == posts.number %}
+    
+                    <a type="button" href="?page={{ item }}&&tag={{ posts.tag_id }}" class="btn btn-primary">{{item}}</a>
+                    {% else %}
+                    <a type="button" href="?page={{ item }}&&tag={{ posts.tag_id }}" class="btn btn-outline-primary">{{item}}</a>
+    
+                {% endif %}
+    
+            {% endfor %}
+                
+        </div>
     </div>
     {% comment %} tags {% endcomment %}
 </div>
