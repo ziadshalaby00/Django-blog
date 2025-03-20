@@ -7,7 +7,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required, permission_required
-
+from django.core.paginator import Paginator
 # creating a form  
 
 class signupView(View):
@@ -47,7 +47,14 @@ class userInfo(LoginRequiredMixin, View):
     login_url = '/login/'
     
     def get(self, request):
-        return render(request, "profilePage.html")
+        posts = Post.objects.filter(user=request.user).order_by('-created_at')
+        
+        for post in posts:
+            post.likes_count = post.likes.filter(like=True).count()
+            if(request.user.is_authenticated):
+                post.is_liked = post.likes.filter(like=True, user=request.user).exists()
+        
+        return render(request, 'profilePage.html', {"posts": posts})
     
     def post(self, request):
         user = User.objects.get(id=request.user.id)
@@ -73,13 +80,32 @@ class userInfo(LoginRequiredMixin, View):
         request.user.delete()
     
 def BlogView(request):
+    get_tag = request.GET.get('tag')
+
+    posts = []
+    if(get_tag):
+        posts = Post.objects.filter(tag=get_tag).order_by('-created_at')
+
+    else:
+        posts = Post.objects.all().order_by('-created_at')
+        
     tags = Tag.objects.all()
-    posts = Post.objects.all().order_by('-created_at')
+    
+    paginator = Paginator(posts, 5)
+    page_number = request.GET.get('page')
+    posts = paginator.get_page(page_number)
+    
     for post in posts:
         post.likes_count = post.likes.filter(like=True).count()
         if(request.user.is_authenticated):
             post.is_liked = post.likes.filter(like=True, user=request.user).exists()
-            
+    
+    if get_tag: 
+        posts.tag_id = get_tag
+        
+        tag_name = Tag.objects.filter(id=get_tag)
+        if tag_name.exists(): posts.tag_name = tag_name.first()
+        
     return render(request, 'BlogPage.html', {"tags": tags, "posts": posts})
 
 @login_required(login_url='/login/')
@@ -104,6 +130,15 @@ def likes(request):
         return JsonResponse({"message": "invalid 2"}, status=400)
         
 
+def getComment(request):
+    post_id = request.GET.get("post_id")
+    if not post_id:
+        return JsonResponse({"error": "post_id is required"}, status=400)
+    comments = Comment.objects.filter(post=post_id).values("id", "user__username", "image", "content", "created_at")
+    return JsonResponse({
+        "comments": list(comments)
+    }, status=200)
+
 def logoutView(request):
     logout(request)
     return redirect('login')
@@ -123,7 +158,6 @@ hashtags = [
 ##################### test functions #####################
 
 # def createTestUser(request):
-#     User.objects.create(username="test_user", password="test_user")
 #     return HttpResponse("Done")
 
 # def createTestTags(request):

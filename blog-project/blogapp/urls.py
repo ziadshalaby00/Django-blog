@@ -28,6 +28,7 @@ urlpatterns = [
     path("Blog/", BlogView, name="blog"),
     
     path("likes/", likes, name="likes"),
+    path("getComment/", getComment, name="getComment"),
     
-    # path("createTestLikes/", createTestLikes),
+    # path("createTestUser/", createTestUser),
 ]

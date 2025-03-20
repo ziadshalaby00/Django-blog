@@ -1,6 +1,47 @@
 {% extends "main.html" %}
 
 {% block content %}
+
+<style>
+    .navbar .container-fluid, #modal-body-comments {
+        overflow-x: auto;
+        padding-bottom: 10px;
+        scrollbar-width: thin;
+        scrollbar-color: #888 #d9d9d9;
+    }
+
+    .navbar .container-fluid::-webkit-scrollbar, #modal-body-comments::-webkit-scrollbar {
+        height: 8px;
+    }
+    
+    .navbar .container-fluid::-webkit-scrollbar-track, #modal-body-comments::-webkit-scrollbar-track {
+        background: #d9d9d9;
+        border-radius: 10px;
+    }
+    
+    .navbar .container-fluid::-webkit-scrollbar-thumb, #modal-body-comments::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 10px;
+    }
+    
+    .navbar .container-fluid::-webkit-scrollbar-thumb:hover, #modal-body-comments::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+    @media (min-width: 600px) {
+        .card-content-m {
+            width: 75%;
+            margin: auto;
+        }
+    }
+    a {
+        text-decoration: none;
+        cursor: pointer; 
+    }
+    .b-l-c-me:hover {
+        transform: scale(1.05);
+    }
+</style>
+
 <div class="card position-relative w-100 p-3 mt-3 d-flex align-items-center" style="flex-flow:wrap row">
     <img src=" {% if request.user.profile.profile_image.url %}
                     {{request.user.profile.profile_image.url}}
@@ -38,7 +79,81 @@
             </div>
         </form>
     </div>
-  </div>
+</div>
+
+
+<div class="container">
+    
+    {% for post in posts %}
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+    <div class="card card-content-m mb-4 mt-5">
+        <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #d1f1fe;">
+            <div class="me-2 d-flex gap-2 align-items-center">
+                <img class="rounded-circle border border-primary" style="width: 50px; height: 50px"
+                 src=" {% if post.user.profile.profile_image.url %}
+                    {{post.user.profile.profile_image.url}}
+                 {% else %}
+                    https://www.blookup.com/static/images/single/profile-1.edaddfbacb02.png
+                 {% endif %}"
+                 alt="">
+                 
+                <h4 class="d-inline">{{post.user.username}}</h4>
+            </div>
+            <div>
+                <span class="fs-6 px-3 py-2 badge bg-secondary">{{post.tag.name}}</span>
+            </div>
+        </div>
+        
+        {% if post.image %}
+        <img src="/media/{{post.image}}" class="card-img-top" alt="...">
+        {% endif %}
+        <div class="card-body">
+            <h5 class="card-title">{{post.title}}</h5>
+            <p class="card-text">{{post.content}}</p>
+            <div class="mt-4 d-flex justify-content-between align-items-center">
+
+                <a data-bs-toggle="modal" data-bs-target="#CommentsModel" onclick="getCommentForPost({{post.id}})">
+                    <h5 class="b-l-c-me text-decoration-underline">{{ post.comments.count }} Comments</h5>
+                </a>
+
+                <div class="b-l-c-me" onclick="toggleLikes({{post.id}})">
+                <a id="like-setted-{{post.id}}">
+                    {{ post.likes_count }}
+                    {% if post.is_liked %} 
+                        <i id="likeToggle2" class="bi bi-heart-fill"></i>
+                        {% else %}
+                        <i id="likeToggle1" class="bi bi-heart"></i>
+                    {% endif %}
+                </a>
+                </div>
+            </div>
+            <div class="mt-4">
+                <p class="m-0 text-secondary" style="font-size: 14px;">{{post.created_at}}</p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Modal -->
+    <div class="modal fade" id="CommentsModel" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Post Comments</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body overflow-auto" 
+                style="max-height: 75vh; padding: 40px" id="modal-body-comments">
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
 
   <script>
 
@@ -59,6 +174,70 @@
         })
         .then(() => {
             location.href='{% url "signup" %}'
+        })
+    }
+
+    function getCommentForPost(post_id){
+        fetch(`{% url 'getComment' %}?post_id=${post_id}`, {
+            method: "GET",
+        })
+        .then(response => response.json())
+        .then(response => {
+            console.log(response)
+            document.getElementById("modal-body-comments").innerHTML = ''
+            for(let item of response.comments) {
+                document.getElementById("modal-body-comments").innerHTML += `
+                    <div class="mb-5">
+                        <div class="me-2 d-flex gap-2 align-items-center">
+                            <img class="rounded-circle border border-primary" style="width: 50px; height: 50px"
+                                src=" {% if post.user.profile.profile_image.url %}
+                                {{post.user.profile.profile_image.url}}
+                                {% else %}
+                                https://www.blookup.com/static/images/single/profile-1.edaddfbacb02.png
+                                {% endif %}"
+                                alt="">
+                                
+                            <h4 class="d-inline">${item.user__username}</h4>
+                        </div>
+
+                        <p class="mt-2 ms-5"> ${item.content}
+                            <img class="mt-2 d-block" style="max-width: 75%"
+                            src="/media/${item.image}" alt="">
+                        </p>
+                    </div>
+                `
+            }
+        }).catch((error) => {
+            console.log(error)
+        })
+    }
+
+    function toggleLikes(post_id) {
+        let formData = new FormData();
+        formData.append("post_id", post_id);
+
+        fetch("{% url 'likes' %}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCSRFToken()
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(response => {
+            let likeHeart = ''
+            if(response.is_liked) {
+                likeHeart = '<i id="likeToggle2" class="bi bi-heart-fill"></i>'
+            }else {
+                likeHeart = '<i id="likeToggle1" class="bi bi-heart"></i>'
+            }
+            document.getElementById(`like-setted-${post_id}`).innerHTML = `
+                ${response.likes_count}
+                ${likeHeart}
+            `
+            console.log(response)
+        }).catch((error) => {
+            console.log(error)
         })
     }
   </script>
