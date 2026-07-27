@@ -1,10 +1,23 @@
 # Django Blog
-# Full-Stack Blog Website (Django)
 
-A full-stack blog website built with Django that supports CRUD operations for accounts, posts, and comments. It also allows users to like posts and includes additional features.
+A full-stack blog application built with Django. Users can create posts, add comments, like content, and filter by tags.
 
-# Technologies Used
-Django - Bootstrap 5 - HTML - Vanilla JS
+## Features
 
-# Concepts Used
-Authentication - Pagination - Filtering - Permissions - CRUD
+- **Authentication** — Sign up, log in, log out, and delete account
+- **Posts** — Create, update, delete posts with images and tags
+- **Comments** — Add and delete comments with optional images
+- **Likes** — Toggle like/unlike on posts
+- **Filtering** — Browse posts by tags
+- **Pagination** — Paginated post listings
+- **Permissions** — Users can only edit/delete their own posts and comments
+- **Profile** — Update username and profile image
+
+## Tech Stack
+
+- **Backend:** Django 4.2
+- **Frontend:** Bootstrap 5, HTML, Vanilla JavaScript
+- **Database:** SQLite
+- **Media:** Pillow
+
+---
