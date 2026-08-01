@@ -1,6 +1,6 @@
 # Django Blog
 
-A full-stack blog application built with Django. Users can create posts, add comments, like content, and filter by tags.
+A full-stack blog application built with Django. Users can create posts, add comments, like content, filter by tags and more.
 
 ## Features
 
@@ -16,7 +16,7 @@ A full-stack blog application built with Django. Users can create posts, add com
 ## Tech Stack
 
 - **Backend:** Django 4.2
-- **Frontend:** Bootstrap 5, HTML, Vanilla JavaScript
+- **Frontend:** Bootstrap 5, HTML, CSS3, Vanilla JavaScript
 - **Database:** SQLite
 - **Media:** Pillow
 
