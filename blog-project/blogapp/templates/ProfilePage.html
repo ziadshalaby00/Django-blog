@@ -1,271 +1,838 @@
 {% extends "main.html" %}
 
+{% block title %}Profile - {{request.user.username}}{% endblock %}
+
 {% block content %}
 
 <style>
-    .navbar .container-fluid, #modal-body-comments, .paginat {
-        overflow-x: auto;
-        padding-bottom: 10px;
-        scrollbar-width: thin;
-        scrollbar-color: #888 #d9d9d9;
+    :root {
+        --card-radius: 16px;
+        --card-bg: #ffffff;
+        --border-color: #e5e7eb;
+        --border-subtle: #f3f4f6;
+        --text-primary: #1a1a2e;
+        --text-secondary: #6b7280;
+        --text-muted: #9ca3af;
+        --accent-blue: #3b82f6;
+        --accent-danger: #ef4444;
+        --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+        --shadow-lg: 0 12px 40px rgba(0,0,0,0.08);
     }
 
-    .navbar .container-fluid::-webkit-scrollbar, #modal-body-comments::-webkit-scrollbar {
-        height: 8px;
+    /* ===== Profile Header ===== */
+    .profile-header {
+        background: var(--card-bg);
+        border-radius: var(--card-radius);
+        border: 1px solid var(--border-subtle);
+        padding: 40px;
+        margin-bottom: 32px;
+        box-shadow: var(--shadow-sm);
+        position: relative;
+        overflow: hidden;
     }
-    
-    .navbar .container-fluid::-webkit-scrollbar-track, #modal-body-comments::-webkit-scrollbar-track {
-        background: #d9d9d9;
+
+    .profile-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 120px;
+        background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+        opacity: 0.08;
+    }
+
+    .profile-header-inner {
+        display: flex;
+        align-items: flex-end;
+        gap: 24px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .profile-avatar-wrap {
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid white;
+        box-shadow: var(--shadow-md);
+    }
+
+    .profile-avatar-edit {
+        position: absolute;
+        bottom: 4px;
+        right: 4px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: var(--text-primary);
+        color: white;
+        border: 3px solid white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s ease;
+    }
+
+    .profile-avatar-edit:hover {
+        background: var(--accent-blue);
+        transform: scale(1.1);
+    }
+
+    .profile-info {
+        flex: 1;
+        padding-bottom: 4px;
+    }
+
+    .profile-name {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 4px 0;
+        letter-spacing: -0.5px;
+    }
+
+    .profile-handle {
+        font-size: 15px;
+        color: var(--text-muted);
+        margin: 0;
+    }
+
+    .profile-stats {
+        display: flex;
+        gap: 32px;
+        margin-top: 16px;
+    }
+
+    .profile-stat {
+        text-align: center;
+    }
+
+    .profile-stat-value {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--text-primary);
+        line-height: 1;
+    }
+
+    .profile-stat-label {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-top: 4px;
+    }
+
+    .profile-actions {
+        display: flex;
+        gap: 10px;
+        margin-left: auto;
+        align-self: flex-start;
+        margin-top: 8px;
+    }
+
+    .btn-profile {
+        padding: 10px 20px;
         border-radius: 10px;
-    }
-    
-    .navbar .container-fluid::-webkit-scrollbar-thumb, #modal-body-comments::-webkit-scrollbar-thumb {
-        background: #888;
-        border-radius: 10px;
-    }
-    
-    .navbar .container-fluid::-webkit-scrollbar-thumb:hover, #modal-body-comments::-webkit-scrollbar-thumb:hover {
-        background: #555;
-    }
-    @media (min-width: 600px) {
-        .card-content-m {
-            width: 75%;
-            margin: auto;
-        }
-    }
-    a {
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
         text-decoration: none;
-        cursor: pointer; 
     }
-    .b-l-c-me:hover {
-        transform: scale(1.05);
+
+    .btn-profile-outline {
+        background: var(--border-subtle);
+        color: var(--text-secondary);
+        border: 1px solid var(--border-color);
+    }
+
+    .btn-profile-outline:hover {
+        background: var(--border-color);
+        color: var(--text-primary);
+    }
+
+    .btn-profile-danger {
+      background: transparent;
+      color: var(--accent-danger);
+      border: 1px solid #fecaca;
+    }
+
+    .btn-profile-danger:hover {
+      background: #fef2f2;
+      color: #dc2626;
+    }
+
+    /* ===== Update Form ===== */
+    .update-form-wrap {
+        background: var(--card-bg);
+        border-radius: var(--card-radius);
+        border: 1px solid var(--border-subtle);
+        padding: 28px;
+        margin-bottom: 32px;
+        box-shadow: var(--shadow-sm);
+        animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        margin-bottom: 8px;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 12px 16px;
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        background: #fafafa;
+        font-size: 15px;
+        color: var(--text-primary);
+        transition: all 0.2s ease;
+        font-family: inherit;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: var(--accent-blue);
+        background: white;
+        box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+    }
+
+    .form-input::placeholder {
+        color: var(--text-muted);
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 14px;
+        border-radius: 10px;
+        border: none;
+        background: var(--text-primary);
+        color: white;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: inherit;
+    }
+
+    .btn-submit:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    /* ===== Section Title ===== */
+    .section-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 20px 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .section-title::before {
+        content: '';
+        width: 4px;
+        height: 24px;
+        background: linear-gradient(180deg, var(--accent-blue), #8b5cf6);
+        border-radius: 2px;
+    }
+
+    /* ===== Post Cards (matching BlogPage) ===== */
+    .post-card {
+        border: 1px solid var(--border-color);
+        border-radius: var(--card-radius);
+        overflow: hidden;
+        margin-bottom: 24px;
+        background: var(--card-bg);
+        box-shadow: var(--shadow-sm);
+        transition: box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .post-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+
+    .post-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .post-author {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .author-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--border-subtle);
+    }
+
+    .author-name {
+        font-weight: 600;
+        font-size: 15px;
+        color: var(--text-primary);
+        line-height: 1.3;
+    }
+
+    .post-time {
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+
+    .post-tag {
+        padding: 5px 14px;
+        border-radius: 8px;
+        background: #eff6ff;
+        color: var(--accent-blue);
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .post-actions {
+        display: flex;
+        gap: 6px;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+    .post-card:hover .post-actions {
+        opacity: 1;
+    }
+
+    .btn-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        border: none;
+        background: transparent;
+        color: var(--text-muted);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s;
+        font-size: 16px;
+    }
+
+    .btn-icon:hover {
+        background: var(--border-subtle);
+        color: var(--text-secondary);
+    }
+
+    .btn-icon.delete:hover {
+        background: #fef2f2;
+        color: var(--accent-danger);
+    }
+
+    .post-image {
+        width: 100%;
+        max-height: 400px;
+        object-fit: cover;
+        display: block;
+    }
+
+    .post-body {
+        padding: 20px;
+    }
+
+    .post-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0 0 10px 0;
+        color: var(--text-primary);
+        line-height: 1.4;
+    }
+
+    .post-text {
+        font-size: 15px;
+        line-height: 1.7;
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    .post-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 20px;
+        border-top: 1px solid var(--border-subtle);
+    }
+
+    .post-stat {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border-radius: 8px;
+        border: none;
+        background: transparent;
+        color: var(--text-secondary);
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s;
+        text-decoration: none;
+    }
+
+    .post-stat:hover {
+        background: var(--border-subtle);
+        color: var(--text-primary);
+    }
+
+    .post-stat.like-btn:hover {
+        background: #fef2f2;
+    }
+
+    .post-stat.like-btn.liked {
+        color: var(--accent-danger);
+    }
+
+    .like-heart {
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .like-btn:active .like-heart {
+        transform: scale(1.3);
+    }
+
+    /* ===== Modals ===== */
+    .modal-content {
+        border-radius: 20px;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+    }
+
+    .modal-header {
+        border-bottom: 1px solid var(--border-subtle);
+        padding: 18px 24px;
+    }
+
+    .modal-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .modal-body {
+        padding: 24px;
+    }
+
+    #modal-body-comments {
+        max-height: 60vh;
+        overflow-y: auto;
+        padding: 0;
+        scrollbar-width: thin;
+    }
+
+    .comment-item {
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .comment-item:last-child {
+        border-bottom: none;
+    }
+
+    .comment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .comment-author {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .comment-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .comment-username {
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--text-primary);
+    }
+
+    .comment-text {
+        font-size: 14px;
+        line-height: 1.6;
+        color: var(--text-secondary);
+        margin: 0 0 8px 46px;
+    }
+
+    .comment-image {
+        max-width: 70%;
+        border-radius: 10px;
+        margin-left: 46px;
+        margin-top: 8px;
+    }
+
+    .comment-input-group {
+        padding: 16px 24px;
+        border-top: 1px solid var(--border-subtle);
+        background: #fafafa;
+    }
+
+    .btn-primary-custom {
+        padding: 10px 24px;
+        border-radius: 10px;
+        border: none;
+        background: var(--text-primary);
+        color: #fff;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .btn-primary-custom:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+
+    /* ===== Empty State ===== */
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        color: var(--text-muted);
+    }
+
+    .empty-state svg {
+        margin-bottom: 20px;
+        opacity: 0.4;
+    }
+
+    .empty-state h3 {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-bottom: 8px;
+    }
+
+    .empty-state p {
+        font-size: 14px;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 768px) {
+        .profile-header {
+            padding: 24px 20px;
+        }
+
+        .profile-header-inner {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+        }
+
+        .profile-actions {
+            margin-left: 0;
+            width: 100%;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .profile-stats {
+            justify-content: center;
+        }
+
+        .post-actions {
+            opacity: 1;
+        }
+
+        .post-header {
+            flex-wrap: wrap;
+            gap: 10px;
+        }
     }
 </style>
 
-<div class="card position-relative w-100 p-3 mt-3 d-flex align-items-center" style="flex-flow:wrap row">
-    <img src=" {% if request.user.profile.profile_image.url %}
-                    {{request.user.profile.profile_image.url}}
-                {% else %}
-                    https://www.blookup.com/static/images/single/profile-1.edaddfbacb02.png
-                {% endif %}"
-    class="card-img-top rounded-circle"  style="width: 250px; height: 250px"
-    alt="...">
-    <div class="card-body">
-      <h5 class="card-title">{{request.user.username}}</h5>
-    </div>
-    <div class="position-absolute top-0 end-0 m-3 d-flex gap-2">
-        <button onclick="openUpdate()" class="btn btn-outline-secondary">update</button>
-        <button onclick="send()" class="btn btn-danger">Delete account</button>
-    </div>
-
-    <div class="mt-4 d-none" id="updateform">
-        <form action="" enctype="multipart/form-data" method="POST">
-            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-            {% csrf_token %}
-            <div class="mb-3 mx-4">
-                <label for="exampleFormControlInput1" class="form-label">Username</label>
-                <input type="text" class="form-control" name="username"
-                id="exampleFormControlInput1" placeholder="Enter your username"
-                style="height: 50px; border-radius: 10px;">
+<!-- Profile Header -->
+<div class="profile-header">
+    <div class="profile-header-inner">
+        <div class="profile-avatar-wrap">
+            <img class="profile-avatar"
+                src="{% if request.user.profile.profile_image %}{{request.user.profile.profile_image.url}}{% else %}https://ui-avatars.com/api/?name={{request.user.username|urlencode}}&background=random&color=fff&size=128{% endif %}"
+                alt="{{request.user.username}}">
+            <button class="profile-avatar-edit" onclick="openUpdate()">
+                <i class="bi bi-pencil-fill"></i>
+            </button>
+        </div>
+        <div class="profile-info">
+            <h1 class="profile-name">{{request.user.username}}</h1>
+            <p class="profile-handle">@{{request.user.username}}</p>
+            <div class="profile-stats">
+                <div class="profile-stat">
+                    <div class="profile-stat-value">{{ posts.paginator.count|default:posts|length }}</div>
+                    <div class="profile-stat-label">Posts</div>
+                </div>
+                <div class="profile-stat">
+                    <div class="profile-stat-value">{{ request.user.likes.count|default:0 }}</div>
+                    <div class="profile-stat-label">Likes</div>
+                </div>
             </div>
-
-            <div class="mb-3 mx-4">
-                <label class="form-label" for="imageInput">Upload Profile Image</label>
-                <input type="file" class="form-control" id="imageInput" name="profile_image"
-                style="border-radius: 10px;" placeholder="Enter your password">
-            </div>
-            <div class="mb-3  mx-4">
-                <button type="submit" class="w-100 btn btn-primary">Update account</button>
-            </div>
-        </form>
+        </div>
+        <div class="profile-actions">
+            <button onclick="openUpdate()" class="btn-profile btn-profile-outline">
+                <i class="bi bi-pencil-square"></i> Edit Profile
+            </button>
+            <button onclick="send()" class="btn-profile btn-profile-danger">
+                <i class="bi bi-trash3"></i> Delete
+            </button>
+        </div>
     </div>
 </div>
 
-<div class="container">
-    
-    {% for post in posts %}
-    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-    <div class="card card-content-m my-4">
-        <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #d1f1fe;">
-            <div class="me-2 d-flex gap-2 align-items-center">
-                <img class="rounded-circle border border-primary" style="width: 50px; height: 50px"
-                 src=" {% if post.user.profile.profile_image.url %}
-                    {{post.user.profile.profile_image.url}}
-                 {% else %}
-                    https://www.blookup.com/static/images/single/profile-1.edaddfbacb02.png
-                 {% endif %}"
-                 alt="">
-                 
-                <h4 class="d-inline">{{post.user.username}}</h4>
+<!-- Update Form -->
+<div class="update-form-wrap d-none" id="updateform">
+    <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 20px; color: var(--text-primary);">
+        <i class="bi bi-pencil-square" style="color: var(--accent-blue);"></i> Edit Profile
+    </h3>
+    <form action="" enctype="multipart/form-data" method="POST">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label">Username</label>
+            <input type="text" class="form-input" name="username"
+                placeholder="Enter your username" value="{{request.user.username}}">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Profile Image</label>
+            <input type="file" class="form-input" id="imageInput" name="profile_image"
+                accept="image/*">
+        </div>
+        <button type="submit" class="btn-submit">
+            <i class="bi bi-check-lg"></i> Save Changes
+        </button>
+    </form>
+</div>
+
+<!-- Posts Section -->
+<h2 class="section-title">My Posts</h2>
+
+{% for post in posts %}
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+<div class="post-card">
+    <div class="post-header">
+        <div class="post-author">
+            <img class="author-avatar"
+                src="{% if post.user.profile.profile_image %}{{post.user.profile.profile_image.url}}{% else %}https://ui-avatars.com/api/?name={{post.user.username|urlencode}}&background=random&color=fff&size=128{% endif %}"
+                alt="{{post.user.username}}">
+            <div>
+                <div class="author-name">{{post.user.username}}</div>
+                <div class="post-time">{{post.created_at|timesince}} ago</div>
             </div>
-            <div class="d-flex gap-2 flex-wrap justify-content-end">
-                <span class="fs-6 px-3 py-2 badge bg-secondary">{{post.tag.name}}</span>
-                
-                {% if request.user.id == post.user.id %}
-                <button type="button" class="btn btn-outline-secondary ms-3" 
-                data-bs-toggle="modal" data-bs-target="#updatepost"
-                onclick="fillUpdateModle({
-                    'id': '{{post.id}}',
-                    'title': '{{post.title}}',
-                    'content': '{{post.content}}',
-                    'tag_id': '{{post.tag.id}}',
-                    'tag_name': '{{post.tag.name}}',
-                })">
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            {% if post.tag %}
+            <span class="post-tag">{{post.tag.name}}</span>
+            {% endif %}
+
+            {% if request.user.id == post.user.id %}
+            <div class="post-actions">
+                <button type="button" class="btn-icon"
+                    data-bs-toggle="modal" data-bs-target="#updatepost"
+                    onclick="fillUpdateModle({
+                        'id': '{{post.id}}',
+                        'title': '{{post.title|escapejs}}',
+                        'content': '{{post.content|escapejs}}',
+                        'tag_id': '{{post.tag.id}}',
+                        'tag_name': '{{post.tag.name|escapejs}}',
+                    })">
                     <i class="bi bi-pencil-square"></i>
-                    Update
                 </button>
-
-                <a href="{% url 'deletePost' post.id %}" id="deletePost-btn" type="button" class="btn btn-outline-danger">
-                    <i class="bi bi-trash"></i>
-                    Delete
+                <a href="{% url 'deletePost' post.id %}" id="deletePost-btn-{{post.id}}" class="btn-icon delete">
+                    <i class="bi bi-trash3"></i>
                 </a>
-                {% endif %}
-                    
             </div>
-        </div>
-        
-        {% if post.image %}
-        <img src="/media/{{post.image}}" class="card-img-top" alt="...">
-        {% endif %}
-        <div class="card-body">
-            <h5 class="card-title">{{post.title}}</h5>
-            <p class="card-text">{{post.content}}</p>
-            <div class="mt-4 d-flex justify-content-between align-items-center">
-
-                <a data-bs-toggle="modal" data-bs-target="#CommentsModel" onclick="getCommentForPost({{post.id}})">
-                    <h5 class="b-l-c-me text-decoration-underline">{{ post.comments.count }} Comments</h5>
-                </a>
-
-                <div class="b-l-c-me" onclick="toggleLikes({{post.id}})">
-                <a id="like-setted-{{post.id}}">
-                    {{ post.likes_count }}
-                    {% if post.is_liked %} 
-                        <i id="likeToggle2" class="bi bi-heart-fill"></i>
-                        {% else %}
-                        <i id="likeToggle1" class="bi bi-heart"></i>
-                    {% endif %}
-                </a>
-                </div>
-            </div>
-            <div class="mt-4">
-                <p class="m-0 text-secondary" style="font-size: 14px;">{{post.created_at}}</p>
-            </div>
+            {% endif %}
         </div>
     </div>
-    {% endfor %}
 
-    <!-- Modal comments -->
-    <div class="modal fade" id="CommentsModel" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
+    {% if post.image %}
+    <img src="/media/{{post.image}}" class="post-image" alt="{{post.title}}">
+    {% endif %}
 
-                <div class="modal-header">
-                    <h5 class="modal-title">Post Comments</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-
-                <div class="modal-body overflow-auto" 
-                style="max-height: 75vh; padding: 40px" id="modal-body-comments">
-
-                </div>
-                {% if request.user.is_authenticated %}
-                <div class="border-top input-group my-3 p-3 pt-4">
-                    <input type="file" class="form-control" id="inputGroupFile01">
-                    <textarea rows="1" class="form-control" id="contentComment" placeholder="Comment Now"></textarea>
-                    <button class="btn btn-outline-primary" id="btn-create-comment">Comment</button>
-                </div>
-                {% endif %}
-            </div>
-        </div>
+    <div class="post-body">
+        <h5 class="post-title">{{post.title}}</h5>
+        <p class="post-text">{{post.content}}</p>
     </div>
-    <!--// Modal comments //-->
 
-    <!-- Modal update post -->
-    <div class="modal fade" id="updatepost" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+    <div class="post-footer">
+        <a class="post-stat" data-bs-toggle="modal" data-bs-target="#CommentsModel" onclick="getCommentForPost({{post.id}})">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            {{ post.comments.count }} Comments
+        </a>
+
+        <button class="post-stat like-btn {% if post.is_liked %}liked{% endif %}" onclick="toggleLikes({{post.id}})">
+            <span id="like-setted-{{post.id}}" style="display: flex; align-items: center; gap: 6px;">
+                {{ post.likes_count }}
+                {% if post.is_liked %}
+                    <svg class="like-heart" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                {% else %}
+                    <svg class="like-heart" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                {% endif %}
+            </span>
+        </button>
+    </div>
+</div>
+{% empty %}
+<div class="empty-state">
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    <h3>No posts yet</h3>
+    <p>Your posts will appear here. Go create your first post!</p>
+</div>
+{% endfor %}
+
+<!-- Modal Comments -->
+<div class="modal fade" id="CommentsModel" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h1 class="modal-title fs-5" id="exampleModalLabel">Update Post</h1>
+                <h5 class="modal-title"><i class="bi bi-chat-left-text" style="margin-right: 8px;"></i>Comments</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body" id="updateModel">
-
+            <div class="modal-body" style="padding: 0;">
+                <div id="modal-body-comments"></div>
             </div>
-        </div>
+            {% if request.user.is_authenticated %}
+            <div class="comment-input-group">
+                <div class="input-group" style="gap: 8px;">
+                    <input type="file" class="form-control" id="inputGroupFile01" style="max-width: 140px; font-size: 13px; border-radius: 10px;">
+                    <textarea rows="1" class="form-control" id="contentComment" placeholder="Write a comment..." style="resize: none; border-radius: 10px;"></textarea>
+                    <button class="btn btn-primary-custom" id="btn-create-comment">
+                        <i class="bi bi-send-fill"></i>
+                    </button>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
-    <!--// Modal update post //-->
+</div>
+
+<!-- Modal Update Post -->
+<div class="modal fade" id="updatepost" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-pencil-square" style="margin-right: 8px;"></i>Edit Post</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="updateModel"></div>
+        </div>
+    </div>
 </div>
 
 <script>
-
     function getCSRFToken() {
         return document.querySelector('[name=csrfmiddlewaretoken]').value;
     }
 
     function openUpdate() {
-        document.getElementById('updateform').classList.toggle("d-none")
+        document.getElementById('updateform').classList.toggle("d-none");
     }
 
     function send() {
-        if(confirm("you sure you want delete this account?")){
+        if(confirm("Are you sure you want to delete your account? This action cannot be undone.")){
             fetch("{% url 'userInfo' %}", {
                 method: "DELETE",
-                headers: {
-                    "X-CSRFToken": getCSRFToken()
-                },
+                headers: { "X-CSRFToken": getCSRFToken() },
             })
             .then(() => {
-                location.href='{% url "signup" %}'
-            })
+                location.href='{% url "signup" %}';
+            });
         }
     }
 
     function getCommentForPost(post_id){
-        fetch(`{% url 'getComment' %}?post_id=${post_id}`, {
-            method: "GET",
-        })
+        fetch(`{% url 'getComment' %}?post_id=${post_id}`, { method: "GET" })
         .then(response => response.json())
         .then(response => {
-            console.log(response)
-            document.getElementById("modal-body-comments").innerHTML = ''
-            for(let item of response.comments) {
-                document.getElementById("modal-body-comments").innerHTML += `
-                    <div class="mb-5">
-                        <div class="me-2 d-flex gap-2 align-items-center justify-content-between">
-                            <div class="d-flex gap-2 align-items-center">
-                                <img class="rounded-circle border border-primary" style="width: 50px; height: 50px"
-                                    src=" {% if post.user.profile.profile_image.url %}
-                                    {{post.user.profile.profile_image.url}}
-                                    {% else %}
-                                    https://www.blookup.com/static/images/single/profile-1.edaddfbacb02.png
-                                    {% endif %}"
-                                    alt="">
-                                    
-                                <h4 class="d-inline">${item.user__username}</h4>
-                            </div>
-                            
-                            ${response.current_user == item.user__id ?
-                                `<button class="btn btn-danger btn-sm me-2" 
-                                    onclick="deleteComment(${post_id}, ${item.id})">
-                                    <i class="bi bi-trash"></i>
-                                </button>`: '' }
+            const container = document.getElementById("modal-body-comments");
+            container.innerHTML = '';
 
-                        </div>
-
-                        <p class="mt-2 ms-5"> ${item.content}
-                            <img class="mt-2 d-block" style="max-width: 75%"
-                            src="/media/${item.image}" alt="">
-                        </p>
+            if (response.comments.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 50px 20px; color: var(--text-muted);">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin-bottom: 12px; opacity: 0.4;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        <p style="font-size: 14px;">No comments yet. Be the first!</p>
                     </div>
-                `
+                `;
+            } else {
+                for(let item of response.comments) {
+                    const avatarUrl = item.user__profile_image
+                        ? `/media/${item.user__profile_image}`
+                        : `https://ui-avatars.com/api/?name=${encodeURIComponent(item.user__username)}&background=random&color=fff&size=128`;
+
+                    container.innerHTML += `
+                        <div class="comment-item">
+                            <div class="comment-header">
+                                <div class="comment-author">
+                                    <img class="comment-avatar" src="${avatarUrl}" alt="${item.user__username}">
+                                    <span class="comment-username">${item.user__username}</span>
+                                </div>
+                                ${response.current_user == item.user__id ?
+                                    `<button class="btn-icon delete" style="opacity: 0.7;" onclick="deleteComment(${post_id}, ${item.id})">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                    </button>` : ''}
+                            </div>
+                            <p class="comment-text">${item.content}</p>
+                            ${item.image ? `<img class="comment-image" src="/media/${item.image}" alt="Comment image">` : ''}
+                        </div>
+                    `;
+                }
             }
-            document.getElementById("modal-body-comments").innerHTML += 
-            `<input id="hidden-post-id-comment" type="hidden" value="${post_id}">`
-            
+            container.innerHTML += `<input id="hidden-post-id-comment" type="hidden" value="${post_id}">`;
         }).catch((error) => {
-            console.log(error)
-        })
+            console.error(error);
+        });
     }
 
     function toggleLikes(post_id) {
@@ -274,106 +841,110 @@
 
         fetch("{% url 'likes' %}", {
             method: "POST",
-            headers: {
-                "X-CSRFToken": getCSRFToken()
-            },
+            headers: { "X-CSRFToken": getCSRFToken() },
             body: formData
         })
         .then(response => response.json())
         .then(response => {
-            let likeHeart = ''
-            if(response.is_liked) {
-                likeHeart = '<i id="likeToggle2" class="bi bi-heart-fill"></i>'
-            }else {
-                likeHeart = '<i id="likeToggle1" class="bi bi-heart"></i>'
+            const heartIcon = response.is_liked
+                ? '<svg class="like-heart" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>'
+                : '<svg class="like-heart" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+
+            const btn = document.getElementById(`like-setted-${post_id}`).closest('.like-btn');
+            if (response.is_liked) {
+                btn.classList.add('liked');
+            } else {
+                btn.classList.remove('liked');
             }
+
             document.getElementById(`like-setted-${post_id}`).innerHTML = `
                 ${response.likes_count}
-                ${likeHeart}
-            `
-            console.log(response)
+                ${heartIcon}
+            `;
         }).catch((error) => {
-            console.log(error)
-        })
+            console.error(error);
+        });
     }
 
     function fillUpdateModle(post) {
         document.getElementById("updateModel").innerHTML = `
             <form enctype="multipart/form-data" action="{% url 'updatePost' %}${post.id}" method="POST">
                 {% csrf_token %}
-                <div class="mb-3">
-                    <select class="form-select" name="tag" aria-label="Default select example">
-                        <option value="${post.tag_id}" selectd>${post.tag_name}</option>
-
+                <div class="form-group">
+                    <label class="form-label">Tag</label>
+                    <select class="form-input" name="tag" style="cursor: pointer;">
+                        <option value="${post.tag_id || ''}" selected>${post.tag_name || 'Select a tag'}</option>
                         {% for tag in tags %}
                             <option value="{{tag.id}}">{{tag.name}}</option>
                         {% endfor %}
-                            
                     </select>
                 </div>
-                <div class="mb-3">
-                    <input type="text" value="${post.title}" class="form-control" placeholder="Title" name="title">
+                <div class="form-group">
+                    <label class="form-label">Title</label>
+                    <input type="text" value="${post.title}" class="form-input" placeholder="Post title" name="title">
                 </div>
-                <div class="mb-3">
-                    <input type="text" value="${post.content}" class="form-control" placeholder="Content" name="content">
+                <div class="form-group">
+                    <label class="form-label">Content</label>
+                    <textarea class="form-input" rows="4" placeholder="What's on your mind?" name="content" style="resize: vertical;">${post.content}</textarea>
                 </div>
-                <div class="mb-3">
-                    <input type="file" value="${post.image}" name="image" class="form-control">
+                <div class="form-group">
+                    <label class="form-label">Image</label>
+                    <input type="file" name="image" class="form-input" accept="image/*">
                 </div>
-                <button type="submit" class="btn btn-primary">Update</button>
+                <button type="submit" class="btn-submit">Save Changes</button>
             </form>
-        `
+        `;
     }
 
-    document.getElementById("btn-create-comment").addEventListener("click", () => {
-        createComment(document.getElementById("hidden-post-id-comment").value)
-    })
+    document.getElementById("btn-create-comment")?.addEventListener("click", () => {
+        const postId = document.getElementById("hidden-post-id-comment")?.value;
+        if (postId) createComment(postId);
+    });
 
     function createComment(post_id) {
-        console.log("done")
-        console.log(post_id)
         let formData = new FormData();
-        formData.append("image", document.getElementById("inputGroupFile01").files[0]); 
+        const fileInput = document.getElementById("inputGroupFile01");
+        if (fileInput.files[0]) formData.append("image", fileInput.files[0]);
         formData.append("content", document.getElementById("contentComment").value);
 
         fetch(`{% url 'createComment' %}${post_id}`, {
             method: "POST",
-            headers: {
-                "X-CSRFToken": getCSRFToken()
-            },
+            headers: { "X-CSRFToken": getCSRFToken() },
             body: formData
         })
         .then(response => response.json())
         .then(response => {
-            getCommentForPost(post_id)
-            console.log(response)
+            document.getElementById("contentComment").value = '';
+            document.getElementById("inputGroupFile01").value = '';
+            getCommentForPost(post_id);
         }).catch((error) => {
-            console.log(error)
-        })
+            console.error(error);
+        });
     }
 
     function deleteComment(post_id, comment_id) {
-        if(confirm("you sure you want delete this comment?")){
+        if(confirm("Delete this comment?")){
             fetch(`{% url 'deleteComment' %}${comment_id}/`, {
                 method: "POST",
-                headers: {
-                    "X-CSRFToken": getCSRFToken()
-                },
+                headers: { "X-CSRFToken": getCSRFToken() },
             })
             .then(response => response.json())
             .then(response => {
-                getCommentForPost(post_id)
-                console.log(response)
+                getCommentForPost(post_id);
             }).catch((error) => {
-                console.log(error)
-            })
+                console.error(error);
+            });
         }
     }
 
-    document.getElementById("deletePost-btn")?.addEventListener("click", function (e) {
-        if(!confirm("you sure you want delete this post?")) {
-            e.preventDefault();
-        }
+    // Delete post confirmation
+    document.querySelectorAll('[id^="deletePost-btn-"]').forEach(btn => {
+        btn.addEventListener("click", function (e) {
+            if(!confirm("Delete this post?")) {
+                e.preventDefault();
+            }
+        });
     });
-  </script>
+</script>
+
 {% endblock content %}
