@@ -45,3 +45,11 @@ A full-stack blog application built with Django. Users can create posts, add com
 - **Media:** Pillow
 
 ---
+
+## 📄 License
+
+Developed entirely by [Ziad Shalaby](https://github.com/ziadshalaby00).
+
+This project is licensed under the **MIT License**.
+
+---
