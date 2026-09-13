@@ -2,6 +2,10 @@
 
 A full-stack blog application built with Django. Users can create posts, add comments, like content, filter by tags and more.
 
+<img width="32%" alt="image-1" src="https://github.com/user-attachments/assets/294bf23f-c8bb-4942-9627-acf294f19385" />
+<img width="32%" alt="image-7" src="https://github.com/user-attachments/assets/b1cb438a-e093-4199-9730-23aa1276e1da" />
+<img width="32%" alt="image-4" src="https://github.com/user-attachments/assets/397f8959-6994-4f26-94a1-3e3984a1ada0" />
+
 
 ## ✨ Features
 
