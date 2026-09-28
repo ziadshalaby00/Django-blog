@@ -153,7 +153,8 @@ def deletePost(request, id):
 def updatePost(request, id):
     if request.method == "POST":
         post = Post.objects.filter(user=request.user, id=id).first()
-        tag = Tag.objects.filter(id=request.POST.get("tag")).first()
+        tag_id = request.POST.get("tag")
+        tag = Tag.objects.filter(id=tag_id).first() if tag_id else None
         title = request.POST.get("title")
         content = request.POST.get("content")
         image = request.FILES.get("image")
@@ -170,7 +171,8 @@ def updatePost(request, id):
 @login_required(login_url='/login/')
 def createPost(request):
     if request.method == "POST":
-        tag = Tag.objects.filter(id=request.POST.get("tag")).first()
+        tag_id = request.POST.get("tag")
+        tag = Tag.objects.filter(id=tag_id).first() if tag_id else None
         title = request.POST.get("title")
         content = request.POST.get("content")
         image = request.FILES.get("image")
@@ -183,7 +185,7 @@ def createPost(request):
                 content=content,
                 image=image,
             )
-            
+
     return redirect('blog')
 
 @login_required(login_url='/login/')
